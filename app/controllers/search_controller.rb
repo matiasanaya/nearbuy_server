@@ -1,31 +1,37 @@
 class SearchController < ApplicationController
   def search
-    render json: all_results(params[:q], 'AR-C')
+    location = [params[:lat],params[:long]]
+    render json: JSON.pretty_generate(crawl_all_results(params[:q],location))
   end
 
-  def near_me? result
+  def crawl_all_results q, location
+    lat = location[0]
+    long = location[1]
+    state = 'AR-C'
     city = 'Capital Federal'
-    return result['seller_address']['city']['name'] == city
-  end
 
-  def all_results q, state
     require 'JSON'
     res = JSON.parse(api_get(q, state, 0))
+    
     results = res['results']
-    output = []
-    for result in results do
-      # binding.pry
-      output << result if near_me?(result)
+    output = {}
+    output = normalize_results results, output
+    
+    total = res['paging']['total']
+    limit = res['paging']['limit']
+    (1..total.to_i/limit.to_i).each do |i|
+      results = JSON.parse(api_get(q, state, i))['results']
+      output = normalize_results results, output  
     end
-    # total = res['paging']['total']
-    # offset = res['paging']['offset']
-    # limit = res['paging']['limit']
-    # (1..1).each do |i|
-    #   response = JSON.parse(api_get(q, state, i))
-    #   #FIX-ME: Wrong append for JSON
-    #   results << "{ 'OTHER': 'REQUEST #{i}' }"
-    #   results << response['results']
-    # end
+    output
+  end
+
+  def normalize_results results, output
+    output ||= {}
+    for result in results do
+      output[result['seller_address']['city']['name']] ||= []
+      output[result['seller_address']['city']['name']] << result
+    end
     output
   end
 
@@ -39,11 +45,16 @@ class SearchController < ApplicationController
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.ssl_version = :TLSv1
     location = "&state=#{state}"
-    lim = 10 #MAXIMO es 200
+    lim = 200 #MAXIMO es 200
     limit = "&limit=#{lim}"
     off = lim * i
     offset = "&offset=#{off}"
     filters = location + limit + offset
     http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
+  end
+
+  def near_me? result
+    city = 'Capital Federal'
+    return result['seller_address']['city']['name'] == city
   end
 end
