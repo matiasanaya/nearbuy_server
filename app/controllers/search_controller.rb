@@ -1,13 +1,10 @@
 class SearchController < ApplicationController
   def search
-    # location = [params[:lat],params[:long]]
-    location = [123,456]
+    location = [params[:lat],params[:long]]
     render :json => JSON.pretty_generate(crawl_all_results(params[:q],location))
   end
 
   def crawl_all_results q, location
-    lat = location[0]
-    long = location[1]
     state = 'AR-C'
     city = 'Capital Federal'
 
@@ -16,25 +13,23 @@ class SearchController < ApplicationController
     
     results = res['results']
     output = {}
-    output = normalize_results results, output
+    output = normalize_results location, results, output
     
     total = res['paging']['total']
     limit = res['paging']['limit']
     (1..total.to_i/limit.to_i).each do |i|
       results = JSON.parse(api_get(q, state, i))['results']
-      output = normalize_results results, output  
+      output = normalize_results location, results, output  
     end
-    output
+    output.sort_by { |k, v| v['dist'] }
   end
 
-  def normalize_results results, output
+  def normalize_results location, results, output
     output ||= {}
     for result in results do
       city_name = result['seller_address']['city']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
-      #HARD_CODED
-      c2 = City.where(:search => "Belgrano, Buenos Aires, Argentina").first_or_create
-      output[city_name] ||= { 'dist' => Geocoder::Calculations.distance_between(c1,c2), :res => [] }
+      output[city_name] ||= { 'dist' => Geocoder::Calculations.distance_between(c1,location), :res => [] }
       output[city_name][:res] << result
     end
     output
@@ -56,10 +51,5 @@ class SearchController < ApplicationController
     offset = "&offset=#{off}"
     filters = location + limit + offset
     http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
-  end
-
-  def near_me? result
-    city = 'Capital Federal'
-    return result['seller_address']['city']['name'] == city
   end
 end
