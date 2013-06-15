@@ -26,11 +26,20 @@ class SearchController < ApplicationController
     output
   end
 
+  def distance_between geo1, geo2
+    g1 = [geo1['lat'],geo1['lng']]
+    g2 = [geo2['lat'],geo2['lng']]
+    Geocoder::Calculations.distance_between g1, g2
+  end
+
   def normalize_results results, output
     output ||= {}
     for result in results do
-      output[result['seller_address']['city']['name']] ||= []
-      output[result['seller_address']['city']['name']] << result
+      city_name = result['seller_address']['city']['name']
+      geo1 = Geocoder.search("#{city_name}, Buenos Aires, Argentina")[0].data['geometry']['location']
+      geo2 = Geocoder.search('Belgrano, Buenos Aires, Argentina')[0].data['geometry']['location']
+      output[city_name] ||= { 'dist' => distance_between(geo1,geo2), res: [] }
+      output[city_name][:res] << result
     end
     output
   end
