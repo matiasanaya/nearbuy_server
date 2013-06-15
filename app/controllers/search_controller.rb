@@ -8,7 +8,7 @@ class SearchController < ApplicationController
     state = 'AR-C'
     city = 'Capital Federal'
 
-    require 'JSON'
+    # require 'json'
     res = JSON.parse(api_get(q, state, 0))
     
     results = res['results']
