@@ -1,7 +1,8 @@
 class SearchController < ApplicationController
   def search
-    location = [params[:lat],params[:long]]
-    render json: JSON.pretty_generate(crawl_all_results(params[:q],location))
+    # location = [params[:lat],params[:long]]
+    location = [123,456]
+    render :json => JSON.pretty_generate(crawl_all_results(params[:q],location))
   end
 
   def crawl_all_results q, location
@@ -19,26 +20,22 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    (1..total.to_i/limit.to_i).each do |i|
-      results = JSON.parse(api_get(q, state, i))['results']
-      output = normalize_results results, output  
-    end
+    # (1..total.to_i/limit.to_i).each do |i|
+    #   results = JSON.parse(api_get(q, state, i))['results']
+    #   output = normalize_results results, output  
+    # end
     output
-  end
-
-  def distance_between geo1, geo2
-    g1 = [geo1['lat'],geo1['lng']]
-    g2 = [geo2['lat'],geo2['lng']]
-    Geocoder::Calculations.distance_between g1, g2
   end
 
   def normalize_results results, output
     output ||= {}
     for result in results do
       city_name = result['seller_address']['city']['name']
-      geo1 = Geocoder.search("#{city_name}, Buenos Aires, Argentina")[0].data['geometry']['location']
-      geo2 = Geocoder.search('Belgrano, Buenos Aires, Argentina')[0].data['geometry']['location']
-      output[city_name] ||= { 'dist' => distance_between(geo1,geo2), res: [] }
+      c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
+      c2 = City.where(:search => "Belgrano, Buenos Aires, Argentina").first_or_create
+      # geo1 = Geocoder.search("#{city_name}, Buenos Aires, Argentina")[0].data['geometry']['location']
+      # geo2 = Geocoder.search('Belgrano, Buenos Aires, Argentina')[0].data['geometry']['location']
+      output[city_name] ||= { 'dist' => Geocoder::Calculations.distance_between(c1,c2), :res => [] }
       output[city_name][:res] << result
     end
     output

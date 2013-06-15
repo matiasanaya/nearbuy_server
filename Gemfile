@@ -24,6 +24,7 @@ gem 'jquery-rails'
 
 group :development, :test do
   gem 'sqlite3'
+  gem 'hirb'
   gem 'pry'
   gem 'pry-debugger'
 end
