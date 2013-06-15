@@ -17,10 +17,10 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    (1..total.to_i/limit.to_i).each do |i|
-      results = JSON.parse(api_get(q, state, i))['results']
-      output = normalize_results location, results, output  
-    end
+    # (1..total.to_i/limit.to_i).each do |i|
+    #   results = JSON.parse(api_get(q, state, i))['results']
+    #   output = normalize_results location, results, output  
+    # end
     output.sort_by { |k, v| v['dist'] }
   end
 
@@ -45,7 +45,7 @@ class SearchController < ApplicationController
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.ssl_version = :TLSv1
     location = "&state=#{state}"
-    lim = 200 #MAXIMO es 200
+    lim = 50 #MAXIMO es 200
     limit = "&limit=#{lim}"
     off = lim * i
     offset = "&offset=#{off}"
