@@ -12,6 +12,7 @@ class SearchController < ApplicationController
     res = JSON.parse(api_get(q, state, 0))
     
     results = res['results']
+    # binding.pry
     output = {}
     output = normalize_results location, results, output
     
@@ -50,6 +51,8 @@ class SearchController < ApplicationController
     off = lim * i
     offset = "&offset=#{off}"
     filters = location + limit + offset
+    attrs = ['id','title','price','currency_id','buying_mode','condition','permalink','accepts_mercadopago','seller_address']
+    attributes= "&attributes=#{attrs.join(',')}"
     http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
   end
 end
