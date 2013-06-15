@@ -3,6 +3,10 @@ class SearchController < ApplicationController
     render json: api_get(params[:q])
   end
 
+  def near_me my_loc, q
+
+  end
+
   def api_get q
     # MOVER: estos require a un intializer
     require 'net/https'
@@ -12,6 +16,14 @@ class SearchController < ApplicationController
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.ssl_version = :TLSv1
-    http.start { |agent| p agent.get("#{uri.path}?q=#{q}").read_body }
+    loc = 'AR-C'
+    location = "&state=#{loc}"
+    lim = 200 #MAXIMO es 200
+    limit = "&limit=#{lim}"
+    step = 0
+    off = lim * step
+    offset = "&offset=#{off}"
+    filters = location + limit + offset
+    http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
   end
 end
