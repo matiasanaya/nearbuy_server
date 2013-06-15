@@ -1,4 +1,6 @@
 NearbuyServer::Application.routes.draw do
+  get "search/search"
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
