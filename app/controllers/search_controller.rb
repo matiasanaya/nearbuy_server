@@ -20,10 +20,10 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    # (1..total.to_i/limit.to_i).each do |i|
-    #   results = JSON.parse(api_get(q, state, i))['results']
-    #   output = normalize_results results, output  
-    # end
+    (1..total.to_i/limit.to_i).each do |i|
+      results = JSON.parse(api_get(q, state, i))['results']
+      output = normalize_results results, output  
+    end
     output
   end
 
@@ -32,9 +32,8 @@ class SearchController < ApplicationController
     for result in results do
       city_name = result['seller_address']['city']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
+      #HARD_CODED
       c2 = City.where(:search => "Belgrano, Buenos Aires, Argentina").first_or_create
-      # geo1 = Geocoder.search("#{city_name}, Buenos Aires, Argentina")[0].data['geometry']['location']
-      # geo2 = Geocoder.search('Belgrano, Buenos Aires, Argentina')[0].data['geometry']['location']
       output[city_name] ||= { 'dist' => Geocoder::Calculations.distance_between(c1,c2), :res => [] }
       output[city_name][:res] << result
     end
