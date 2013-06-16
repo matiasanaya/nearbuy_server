@@ -86,10 +86,12 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    hard_limit = 200
-    (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
-      results = JSON.parse(api_get(q, state, i))['results']
-      output = normalize_results location, results, output  
+    hard_limit = 5 #esta en paginas
+    if total > limit
+      (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
+        results = JSON.parse(api_get(q, state, i))['results']
+        output = normalize_results location, results, output  
+      end
     end
     output['results'].sort_by { |obj| obj['distance_to_me'] }
   end
@@ -117,7 +119,7 @@ class SearchController < ApplicationController
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
     http.ssl_version = :TLSv1
     location = "&state=#{state}"
-    lim = 50 #MAXIMO es 200
+    lim = 200 #MAXIMO es 200
     limit = "&limit=#{lim}"
     off = lim * i
     offset = "&offset=#{off}"
