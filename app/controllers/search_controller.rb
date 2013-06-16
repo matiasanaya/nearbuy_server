@@ -71,7 +71,11 @@ class SearchController < ApplicationController
     for result in crawl
       city_name = result['seller_address']['city']['name']
       c1 = City.find_by_name(city_name)
-      result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
+      begin
+        result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
+      rescue
+        result['distance_to_me'] = 99999
+      end
     end
     crawl
   end
@@ -103,7 +107,11 @@ class SearchController < ApplicationController
       state_name = result['seller_address']['state']['name']
       country_name = result['seller_address']['country']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina", :name => city_name ).first_or_create
-      result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
+      begin
+        result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
+      rescue
+        result['distance_to_me'] = 99999
+      end
       output['results'] << result
     end
     output
