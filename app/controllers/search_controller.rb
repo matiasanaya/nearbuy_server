@@ -5,22 +5,34 @@ class SearchController < ApplicationController
     render :json => to_render
   end
 
+  def page
+    read = Rails.cache.read(params[:id])
+    pagination_step = 20
+    start = (params[:page].to_i-1) * pagination_step
+    finish = start.to_i + pagination_step
+    to_render = JSON.pretty_generate(read[start..finish])
+    render :json => to_render
+  end
+
   def search
+    pagination_step = 20
     s = Search.where(:query => params[:q]).last
-    # binding.pry
+    location = [params[:lat],params[:long]]
     if s && Rails.cache.read(s.id)
-      render :json => JSON.pretty_generate(Rails.cache.read(s.id))
+      crawler = Rails.cache.read(s.id)
     else
-      location = [params[:lat],params[:long]]
       crawler = crawl_all_results(params[:q],location)
-      search = Search.create(query:params[:q])
-      to_return = { 'id' => search.id, 'results' => crawler }
-      Rails.cache.write(search.id, to_return)
-      render :json => JSON.pretty_generate(to_return)
+      s = Search.create(query:params[:q])
+      Rails.cache.write(s.id, crawler)
     end
+    #FIX-ME me estoy comiendo la ultima pagina por miedo a stack overflow
+    nresults = crawler.count
+    to_return = { 'id' => s.id, 'page' => 0, 'npages' => nresults/pagination_step, 'results' => crawler[0..[19,nresults].min] }
+    render :json => JSON.pretty_generate(to_return)
   end
 
   def crawl_all_results q, location
+    #FIX-ME hardcoded location!
     state = 'AR-C'
     city = 'Capital Federal'
 

@@ -1,7 +1,9 @@
 NearbuyServer::Application.routes.draw do
   get 'search' => 'search#search'
+  post 'search' => 'search#search'
   # get 'searches/:id/map' => 'search#map'
   get 'searches/:id' => 'search#show'
+  get 'searches/:id/:page' => 'search#page'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.
