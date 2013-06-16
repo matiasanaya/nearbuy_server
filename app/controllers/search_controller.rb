@@ -1,17 +1,29 @@
 class SearchController < ApplicationController
   def show
-    read = Rails.cache.read(params[:id])
-    to_render = JSON.pretty_generate(read)
-    render :json => to_render
+    if Search.find_by_id(params[:id])
+      read = Rails.cache.read(params[:id])
+      to_render = JSON.pretty_generate(read)
+      render :json => to_render
+    else
+      render :json => 'Invalid ID'
+    end
   end
 
   def page
-    read = Rails.cache.read(params[:id])
     pagination_step = 20
-    start = (params[:page].to_i-1) * pagination_step
-    finish = start.to_i + pagination_step
-    to_render = JSON.pretty_generate(read[start..finish])
-    render :json => to_render
+    if Search.find_by_id(params[:id])
+      read = Rails.cache.read(params[:id])
+      if read.count/pagination_step < params[:page].to_i
+        render :json => 'Invalid pagination index'
+      else
+        start = (params[:page].to_i-1) * pagination_step
+        finish = start.to_i + pagination_step
+        to_render = JSON.pretty_generate(read[start..finish])
+        render :json => to_render
+      end
+    else
+      render :json => 'Invalid ID'
+    end
   end
 
   def search
