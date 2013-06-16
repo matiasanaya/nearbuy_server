@@ -10,6 +10,6 @@ class City < ActiveRecord::Base
     # binding.pry
     southwest = Geocoder.search(self.search)[0].data['geometry']['viewport']['southwest']
     sw = [southwest['lat'],southwest['lng']]
-    self.radius = Geocoder::Calculations.distance_between(self,sw)
+    self.radius = Geocoder::Calculations.distance_between(self,sw,:units=>:km)
   end
 end
