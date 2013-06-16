@@ -146,7 +146,7 @@ class SearchController < ApplicationController
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
       unless names.include? city_name
         names << city_name
-        output['map'] << { 'name' => city_name, 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'count' => 1 }
+        output['map'] << { 'name' => city_name, 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'radius' => 1000 , 'count' => 1 }
       else
         output['map'][names.index(city_name)]['count'] += 1
       end
