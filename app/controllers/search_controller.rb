@@ -139,12 +139,17 @@ class SearchController < ApplicationController
   end
 
   def build_map results
-    output = { 'total' => 0, 'map' => { } }
+    output = { 'total' => 0, 'map' => [] }
+    names = []
     for result in results do
       city_name = result['seller_address']['city']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
-      output['map'][city_name] ||= { 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'count' => 0 }
-      output['map'][city_name]['count'] += 1
+      unless names.include? city_name
+        names << city_name
+        output['map'] << { 'name' => city_name, 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'count' => 1 }
+      else
+        output['map'][names.index(city_name)]['count'] += 1
+      end
       output['total'] += 1
     end
     output
