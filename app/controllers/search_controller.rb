@@ -64,7 +64,6 @@ class SearchController < ApplicationController
     #FIX-ME me estoy comiendo la ultima pagina por miedo a stack overflow
     nresults = crawl.count
     to_return = { 'id' => s.id, 'page' => 0, 'npages' => nresults/pagination_step, 'results' => crawl[0..[19,nresults].min] }
-    # binding.pry
     render :json => JSON.pretty_generate(to_return)
   end
 
@@ -80,8 +79,6 @@ class SearchController < ApplicationController
   def crawl_all_results q, location
     #FIX-ME hardcoded location!
     state = 'AR-C'
-    city = 'Capital Federal'
-
     res = JSON.parse(api_get(q, state, 0))
     
     results = res['results']
@@ -98,9 +95,11 @@ class SearchController < ApplicationController
   end
 
   def normalize_results location, results, output
-    output ||= { 'id' => '1234', 'results' => [] }
+    output ||= { 'id' => 'WAT', 'results' => [] }
     for result in results do
       city_name = result['seller_address']['city']['name']
+      state_name = result['seller_address']['state']['name']
+      country_name = result['seller_address']['country']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina", :name => city_name ).first_or_create
       result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
       output['results'] << result
