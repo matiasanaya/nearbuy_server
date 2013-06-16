@@ -91,12 +91,12 @@ class SearchController < ApplicationController
     total = res['paging']['total']
     limit = res['paging']['limit']
     hard_limit = 5 #esta en paginas
-    if total > limit
-      (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
-        results = JSON.parse(api_get(q, state, i))['results']
-        output = normalize_results location, results, output  
-      end
-    end
+    # if total > limit
+    #   (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
+    #     results = JSON.parse(api_get(q, state, i))['results']
+    #     output = normalize_results location, results, output  
+    #   end
+    # end
     output['results'].sort_by { |obj| obj['distance_to_me'] }
   end
 
