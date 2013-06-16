@@ -2,7 +2,7 @@ class SearchController < ApplicationController
   def city
     if Search.find_by_id(params[:id])
       read = Rails.cache.read(params[:id])
-      render :json => JSON.pretty_generate(build_city_list(read, params[:city]))
+      render :json => JSON.pretty_generate(build_city_list(read, params[:city_id]))
     else
       render :json => 'Invalid ID'
     end
@@ -64,13 +64,14 @@ class SearchController < ApplicationController
     #FIX-ME me estoy comiendo la ultima pagina por miedo a stack overflow
     nresults = crawl.count
     to_return = { 'id' => s.id, 'page' => 0, 'npages' => nresults/pagination_step, 'results' => crawl[0..[19,nresults].min] }
+    # binding.pry
     render :json => JSON.pretty_generate(to_return)
   end
 
   def recalc_distances location, crawl
     for result in crawl
       city_name = result['seller_address']['city']['name']
-      c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
+      c1 = City.find_by_name(city_name)
       result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
     end
     crawl
@@ -88,7 +89,8 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    (1..total.to_i/limit.to_i).each do |i|
+    hard_limit = 200
+    (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
       results = JSON.parse(api_get(q, state, i))['results']
       output = normalize_results location, results, output  
     end
@@ -99,7 +101,7 @@ class SearchController < ApplicationController
     output ||= { 'id' => '1234', 'results' => [] }
     for result in results do
       city_name = result['seller_address']['city']['name']
-      c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
+      c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina", :name => city_name ).first_or_create
       result['distance_to_me'] = Geocoder::Calculations.distance_between(c1,location)
       output['results'] << result
     end
@@ -126,7 +128,8 @@ class SearchController < ApplicationController
     http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
   end
 
-  def build_city_list results, name
+  def build_city_list results, city_id
+    name = City.find(city_id).name
     output = { 'total' => 0, 'list' => [ ] }
     for result in results do
       city_name = result['seller_address']['city']['name']
@@ -143,10 +146,12 @@ class SearchController < ApplicationController
     names = []
     for result in results do
       city_name = result['seller_address']['city']['name']
-      c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
+      c1 = City.find_by_name(city_name)
+      #HARD-CODED: Filter inaccurate results
+      next if c1.radius > 5
       unless names.include? city_name
         names << city_name
-        output['map'] << { 'name' => city_name, 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'radius' => 1000 , 'count' => 1 }
+        output['map'] << { 'id' => c1.id , 'name' => city_name, 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'radius' => c1.radius , 'count' => 1 }
       else
         output['map'][names.index(city_name)]['count'] += 1
       end

@@ -7,7 +7,8 @@ class City < ActiveRecord::Base
   validates :search, :presence => true
 
   def add_radius
-    southwest = Geocoder.search(self.search)[0].data['geometry']['bounds']['southwest']
+    # binding.pry
+    southwest = Geocoder.search(self.search)[0].data['geometry']['viewport']['southwest']
     sw = [southwest['lat'],southwest['lng']]
     self.radius = Geocoder::Calculations.distance_between(self,sw)
   end
