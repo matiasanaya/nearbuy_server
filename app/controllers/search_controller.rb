@@ -1,4 +1,22 @@
 class SearchController < ApplicationController
+  def city
+    if Search.find_by_id(params[:id])
+      read = Rails.cache.read(params[:id])
+      render :json => JSON.pretty_generate(build_city_list(read, params[:city]))
+    else
+      render :json => 'Invalid ID'
+    end
+  end
+
+  def map
+    if Search.find_by_id(params[:id])
+      read = Rails.cache.read(params[:id])
+      render :json => JSON.pretty_generate(build_map(read))
+    else
+      render :json => 'Invalid ID'
+    end
+  end
+
   def show
     if Search.find_by_id(params[:id])
       read = Rails.cache.read(params[:id])
@@ -70,10 +88,10 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    # (1..total.to_i/limit.to_i).each do |i|
-    #   results = JSON.parse(api_get(q, state, i))['results']
-    #   output = normalize_results location, results, output  
-    # end
+    (1..total.to_i/limit.to_i).each do |i|
+      results = JSON.parse(api_get(q, state, i))['results']
+      output = normalize_results location, results, output  
+    end
     output['results'].sort_by { |obj| obj['distance_to_me'] }
   end
 
@@ -108,14 +126,26 @@ class SearchController < ApplicationController
     http.start { |agent| p agent.get("#{uri.path}?q=#{URI.escape(q)}#{filters}").read_body }
   end
 
-  #DEPRECATED
-  def old_normalize_results location, results, output
-    output ||= {}
+  def build_city_list results, name
+    output = { 'total' => 0, 'list' => [ ] }
+    for result in results do
+      city_name = result['seller_address']['city']['name']
+      if city_name == name
+        output['list'] << result
+        output['total'] += 1
+      end
+    end
+    output
+  end
+
+  def build_map results
+    output = { 'total' => 0, 'map' => { } }
     for result in results do
       city_name = result['seller_address']['city']['name']
       c1 = City.where(:search => "#{city_name}, Buenos Aires, Argentina").first_or_create
-      output[city_name] ||= { 'dist' => Geocoder::Calculations.distance_between(c1,location), :res => [] }
-      output[city_name][:res] << result
+      output['map'][city_name] ||= { 'latitude' => c1.latitude, 'longitude' => c1.longitude, 'count' => 0 }
+      output['map'][city_name]['count'] += 1
+      output['total'] += 1
     end
     output
   end
