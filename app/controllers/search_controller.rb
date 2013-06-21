@@ -47,6 +47,9 @@ class SearchController < ApplicationController
   def search
     pagination_step = 20
     location = [params[:lat],params[:long]]
+    unless location
+      location = [-34.36,-58.26]
+    end
     cached_crawl = Rails.cache.read(params[:q])
     s = Search.where({:query => params[:q], :latitude => params[:lat], :longitude => params[:long]}).first
     if cached_crawl && s
