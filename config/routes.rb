@@ -1,4 +1,5 @@
 NearbuyServer::Application.routes.draw do
+  get 'ping' => 'search#ping'
   get 'search' => 'search#search'
   post 'search' => 'search#search'
   # get 'searches/:id/map' => 'search#map'

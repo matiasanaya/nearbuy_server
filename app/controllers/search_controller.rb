@@ -1,4 +1,8 @@
 class SearchController < ApplicationController
+  def ping
+    render :json => "I'm here"
+  end
+
   def city
     if Search.find_by_id(params[:id])
       read = Rails.cache.read(params[:id])
