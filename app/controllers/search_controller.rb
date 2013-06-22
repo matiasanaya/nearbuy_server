@@ -102,12 +102,14 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    hard_limit = 2 #esta en paginas
-    if total > limit
-      (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
-        logger.info "Performing MEIL query #{i+1} of #{[total.to_i/limit.to_i,hard_limit].min}"
-        results = JSON.parse(api_get(q, state, i))['results']
-        output = normalize_results location, results, output  
+    hard_limit = 0 #esta en paginas
+    if hard_limit > 0
+      if total > limit
+        (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
+          logger.info "Performing MEIL query #{i+1} of #{[total.to_i/limit.to_i,hard_limit].min}"
+          results = JSON.parse(api_get(q, state, i))['results']
+          output = normalize_results location, results, output  
+        end
       end
     end
     output['results'].sort_by { |obj| obj['distance_to_me'] }
