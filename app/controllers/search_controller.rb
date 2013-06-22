@@ -77,7 +77,7 @@ class SearchController < ApplicationController
   end
 
   def recalc_distances location, crawl
-    logger.info 'Hiting the geocoder gem for distance re-calculations'
+    logger.info 'Hiting the geo-distance gem for distance re-calculations'
     for result in crawl
       city_name = result['seller_address']['city']['name']
       c1 = City.find_by_name(city_name)
@@ -98,15 +98,14 @@ class SearchController < ApplicationController
     
     total = res['paging']['total']
     limit = res['paging']['limit']
-    hard_limit = 5 #esta en paginas
-    # if total > limit
-    #   (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
-    #     logger.info "Performing MEIL query #{i+1} of #{[total.to_i/limit.to_i,hard_limit].min}"
-    #     results = JSON.parse(api_get(q, state, i))['results']
-    #     output = normalize_results location, results, output  
-    #   end
-    # end
-    # binding.pry
+    hard_limit = 2 #esta en paginas
+    if total > limit
+      (1..[total.to_i/limit.to_i,hard_limit].min).each do |i|
+        logger.info "Performing MEIL query #{i+1} of #{[total.to_i/limit.to_i,hard_limit].min}"
+        results = JSON.parse(api_get(q, state, i))['results']
+        output = normalize_results location, results, output  
+      end
+    end
     output['results'].sort_by { |obj| obj['distance_to_me'] }
   end
 

@@ -140,6 +140,7 @@ GEM
     uglifier (2.1.1)
       execjs (>= 0.3.0)
       multi_json (~> 1.0, >= 1.0.2)
+    yaml_db (0.2.3)
 
 PLATFORMS
   ruby
@@ -158,3 +159,4 @@ DEPENDENCIES
   sqlite3
   therubyracer
   uglifier (>= 1.0.3)
+  yaml_db

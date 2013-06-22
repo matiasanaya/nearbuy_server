@@ -7,6 +7,7 @@ gem 'rails', '3.2.12'
 
 gem 'geocoder'
 gem 'geo-distance'
+gem 'yaml_db'
 
 group :production do
   gem 'pg'
