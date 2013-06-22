@@ -16,3 +16,6 @@
 
 # Ignore initializer with keys
 # /config/initializers/geocoder.rb
+
+# Igoner vendor
+/vendor
