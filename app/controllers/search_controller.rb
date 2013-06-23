@@ -49,8 +49,8 @@ class SearchController < ApplicationController
   end
 
   def valid_location lat, long
-    lat = -34.36 if !lat.is_a?(Float) && !lat.is_a?(Integer)
-    long = -58.26 if !long.is_a?(Float) && !long.is_a?(Integer)
+    lat = -34.36 if lat.nil?
+    long = -58.26 if long.nil?
     return [lat, long]
   end
 
